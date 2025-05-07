@@ -29,7 +29,6 @@ function handleMedicationAction(_: typeof initialState, formData: FormData) {
 
 const statusOptions = [
 	{ label: 'Active', value: 'ACTIVE' },
-	{ label: 'Removed', value: 'REMOVED' },
 	{ label: 'Expired', value: 'EXPIRED' },
 ];
 

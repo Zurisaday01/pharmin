@@ -17,11 +17,14 @@ import {
 import DeleteUpdateMedicationStatus from '../forms/delete-update-medication-status';
 import Link from 'next/link';
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 
 const MedicationsTable = ({ medications }: { medications: Medication[] }) => {
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
 	const [selectedMedication, setSelectedMedication] =
 		useState<Medication | null>(null);
+
+	const { data: session } = useSession();
 
 	return (
 		<>
@@ -76,6 +79,12 @@ const MedicationsTable = ({ medications }: { medications: Medication[] }) => {
 								Delete Medication {selectedMedication?.name}
 							</ModalHeader>
 							<ModalBody>
+								{session?.user.role !== 'ADMIN' && (
+									<p className='text-red-500'>
+										This action is restricted to admins only.
+									</p>
+								)}
+
 								<p>
 									This is a soft delete action. The medication will still be in
 									the database but marked as removed. Are you sure you want to

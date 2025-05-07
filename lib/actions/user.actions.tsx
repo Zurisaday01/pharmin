@@ -1,13 +1,13 @@
 'use server';
 import { signInFormSchema, signUpFormSchema } from '../validators';
-import {  signIn, signOut } from '@/auth';
+import { signIn, signOut } from '@/auth';
 import { hash } from '@/lib/encrypt';
 import { prisma } from '@/lib/db/prisma';
 
 import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import { revalidatePath } from 'next/cache';
-import { Prisma } from '@prisma/client';
 import { formatError } from '../utils';
+import { Role } from '@prisma/client';
 
 // Sign in with credentials
 export const signInWithCredentials = async (
@@ -97,39 +97,13 @@ export async function getUserById(userId: string) {
 }
 
 // Get all the users
-export async function getAllUsers({
-	limit = 5,
-	page,
-	query,
-}: {
-	limit?: number;
-	page: number;
-	query: string;
-}) {
-	const queryFilter: Prisma.UserWhereInput =
-		query && query !== 'all'
-			? {
-					name: {
-						contains: query,
-						mode: 'insensitive',
-					} as Prisma.StringFilter,
-			  }
-			: {};
-
+export async function getAllUsers() {
 	const data = await prisma.user.findMany({
-		where: {
-			...queryFilter,
-		},
 		orderBy: { createdAt: 'desc' },
-		take: limit,
-		skip: (page - 1) * limit,
 	});
-
-	const dataCount = await prisma.user.count();
 
 	return {
 		data,
-		totalPages: Math.ceil(dataCount / limit),
 	};
 }
 
@@ -149,5 +123,33 @@ export async function deleteUser(id: string) {
 			success: false,
 			message: formatError(error),
 		};
+	}
+}
+export async function updateUser(formData: FormData) {
+	const id = formData.get('id')?.toString();
+	const name = formData.get('name')?.toString();
+	const role = formData.get('role')?.toString();
+
+	if (!id || !name || !role) {
+		return { success: false, message: 'Missing fields' };
+	}
+
+	try {
+		await prisma.user.update({
+			where: { id },
+			data: {
+				name,
+				role: role as Role,
+			},
+		});
+
+		revalidatePath('/dashboard/users');
+
+		return {
+			success: true,
+			message: 'User updated successfully',
+		};
+	} catch (error) {
+		return { success: false, message: formatError(error) };
 	}
 }

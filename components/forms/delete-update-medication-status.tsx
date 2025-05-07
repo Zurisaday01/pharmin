@@ -5,6 +5,7 @@ import { useFormStatus } from 'react-dom';
 import { Form, Button } from '@heroui/react';
 import { Loader2 } from 'lucide-react';
 import { updateMedicationStatus } from '@/lib/actions/medication.actions';
+import { useSession } from 'next-auth/react';
 
 interface InitalStateType {
 	success: boolean;
@@ -45,6 +46,9 @@ const DeleteUpdateMedicationStatus = ({
 	}, [data, onClose]);
 
 	const { pending } = useFormStatus();
+	const { data: session } = useSession();
+
+	const isAdmin = session?.user.role === 'ADMIN';
 
 	return (
 		<Form action={action} className='w-full max-w-sm flex flex-col gap-4'>
@@ -59,7 +63,10 @@ const DeleteUpdateMedicationStatus = ({
 					Close
 				</Button>
 
-				<Button disabled={pending || isPending} type='submit' color='primary'>
+				<Button
+					disabled={pending || isPending || !isAdmin}
+					type='submit'
+					color={!isAdmin ? 'default' : 'danger'}>
 					{pending || isPending ? (
 						<Loader2 className='animate-spin w-5 h-5 text-white' />
 					) : (
