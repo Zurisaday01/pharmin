@@ -120,3 +120,25 @@ export const getMedicationById = async (id: string) => {
 		console.error('Error fetching medication:', error);
 	}
 };
+
+export const getMedicalStats = async () => {
+	try {
+		const totalMedications = await prisma.product.count();
+		const totalUnits = await prisma.product.aggregate({
+			_sum: {
+				quantity: true,
+			},
+		});
+
+		return  {
+			totalMedications,
+			totalUnits: totalUnits._sum.quantity ?? 0,
+		}
+	}catch (error) {
+		console.error('Error fetching medical stats:', error);
+		return {
+			totalMedications: 0,
+			totalUnits: 0,
+		};
+	}
+}

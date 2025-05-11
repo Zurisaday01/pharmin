@@ -149,3 +149,17 @@ export async function updateUser(formData: FormData) {
 		return { success: false, message: formatError(error) };
 	}
 }
+
+export const getUserStats = async () => {
+	try {
+		const totalUsers = await prisma.user.count();
+		return {
+			totalUsers,
+		};
+	} catch (error) {
+		console.error('Error fetching user stats:', error);
+		return {
+			totalUsers: 0,
+		};
+	}
+};
