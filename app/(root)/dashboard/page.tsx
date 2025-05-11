@@ -1,10 +1,15 @@
 import { getMedicalStats } from "@/lib/actions/medication.actions";
 import { getUserStats } from "@/lib/actions/user.actions";
 import { Card } from "@heroui/card";
+import MedicationPieChart from "@/components/charts/medication-pie-chart";
+import { getAllMedications } from '@/lib/actions/medication.actions';
 
 const DashboardPage = async () => {
 	const { totalMedications, totalUnits } = await getMedicalStats();
 	const { totalUsers } = await getUserStats();
+	const result = await getAllMedications();
+	const medications = result?.data ?? [];
+
 	return (
 		<>
 			<h1 className='text-2xl font-bold mb-4'>Dashboard</h1>
@@ -24,6 +29,12 @@ const DashboardPage = async () => {
 				</Card>
 			</div>
 
+			<main className="mt-8">
+				<Card className="p-8 bg-white shadow-md">
+					<MedicationPieChart medications={medications} />
+				</Card>
+				
+			</main>
 		</>
 	)
 };
