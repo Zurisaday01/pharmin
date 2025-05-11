@@ -6,6 +6,7 @@ import { Form, Button } from '@heroui/react';
 import { Loader2 } from 'lucide-react';
 import { updateMedicationStatus } from '@/lib/actions/medication.actions';
 import { useSession } from 'next-auth/react';
+import toast from 'react-hot-toast';
 
 interface InitalStateType {
 	success: boolean;
@@ -41,7 +42,10 @@ const DeleteUpdateMedicationStatus = ({
 
 	useEffect(() => {
 		if (data?.success) {
+			toast.success(data.message || 'Medication status updated successfully');
 			onClose();
+		}else if (data?.message) {
+			toast.error(data.message);
 		}
 	}, [data, onClose]);
 

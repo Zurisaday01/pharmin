@@ -3,7 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { useActionState, useEffect } from 'react';
-import { signUpWithCredentials } from '@/lib/actions/user.actions';
+import { signInWithCredentials, signUpWithCredentials } from '@/lib/actions/user.actions';
+import toast from 'react-hot-toast';
 //components
 
 import { Form, Button, Input } from '@heroui/react';
@@ -24,7 +25,10 @@ const SignUpForm = () => {
 	// ✅ Show toast and redirect on success
 	useEffect(() => {
 		if (data?.success) {
+			toast.success(data.message || 'Account created successfully');
 			router.push('/dashboard');
+		}else if (data?.message) {
+			toast.error(data.message);
 		}
 	}, [data, router]);
 

@@ -3,6 +3,7 @@
 import { useFormStatus } from 'react-dom';
 import { useActionState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 import { Form, Input, Button, Select, SelectItem } from '@heroui/react';
 import { Loader2 } from 'lucide-react';
@@ -46,7 +47,10 @@ const CreateOrUpdateMedicationForm = ({
 
 	useEffect(() => {
 		if (data?.success) {
+			toast.success(data.message || "Medication saved successfully");
 			router.push('/dashboard/medications');
+		} else if (data?.message) {
+			toast.error(data.message);
 		}
 	}, [data, router]);
 

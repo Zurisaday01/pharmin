@@ -44,7 +44,6 @@ export async function signUpWithCredentials(
 	formData: FormData
 ) {
 	try {
-		// parse the user data from the form data
 		const user = signUpFormSchema.parse({
 			name: formData.get('name'),
 			email: formData.get('email'),
@@ -52,13 +51,9 @@ export async function signUpWithCredentials(
 			confirmPassword: formData.get('confirmPassword'),
 		});
 
-		// get the pain password
 		const plainPassword = user.password;
-
-		// hash the password
 		user.password = await hash(plainPassword);
 
-		// create the user in the database
 		await prisma.user.create({
 			data: {
 				name: user.name,
@@ -67,22 +62,23 @@ export async function signUpWithCredentials(
 			},
 		});
 
-		// sign in right after
-		await signIn('credentials', {
+		const result = await signIn('credentials', {
 			email: user.email,
 			password: plainPassword,
+			redirect: false, // ✅ Mantén esto para evitar navegación automática
 		});
 
-		console.log('User created successfully');
-
-		return { success: true, message: 'User registered successfully' };
+		if (result?.ok) {
+			return { success: true, message: 'User registered successfully' };
+		} else {
+			return { success: false, message: 'User created, but sign-in failed' };
+		}
 	} catch (error: unknown) {
 		if (isRedirectError(error)) {
 			throw error;
 		}
 
-		console.log('Error creating user', error);
-
+		console.error('Error creating user', error);
 		return { success: false, message: formatError(error) };
 	}
 }
