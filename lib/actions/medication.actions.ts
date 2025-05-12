@@ -1,6 +1,7 @@
 'use server';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '../db/prisma';
+import { Product } from '@prisma/client';
 
 export const createMedication = async (formData: FormData) => {
 	const name = formData.get('name') as string;
@@ -130,15 +131,29 @@ export const getMedicalStats = async () => {
 			},
 		});
 
-		return  {
+		return {
 			totalMedications,
 			totalUnits: totalUnits._sum.quantity ?? 0,
-		}
-	}catch (error) {
+		};
+	} catch (error) {
 		console.error('Error fetching medical stats:', error);
 		return {
 			totalMedications: 0,
 			totalUnits: 0,
 		};
 	}
-}
+};
+
+export const getLowStockMedications = async () => {
+	try {
+		const lowStockMeds = await prisma.$queryRaw<Product[]>`
+			SELECT * FROM "Product"
+			WHERE "quantity" < "minStock" AND "status" = 'ACTIVE'
+		`;
+
+		return { success: true, data: lowStockMeds };
+	} catch (error) {
+		console.error('Error fetching low stock medications:', error);
+		return { success: false, data: [] };
+	}
+};

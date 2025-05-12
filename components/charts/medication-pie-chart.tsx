@@ -1,12 +1,7 @@
 'use client';
 
 import { Pie } from 'react-chartjs-2';
-import {
-	Chart as ChartJS,
-	ArcElement,
-	Tooltip,
-	Legend,
-} from 'chart.js';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -24,7 +19,7 @@ export default function MedicationPieChart({
 		labels: medications.map(m => m.name),
 		datasets: [
 			{
-				label: 'Unidades por medicamento',
+				label: 'Units per medication',
 				data: medications.map(m => m.quantity),
 				backgroundColor: [
 					'#FF6384',
@@ -44,7 +39,7 @@ export default function MedicationPieChart({
 	return (
 		<div className='w-full md:w-1/2 lg:w-1/3 mx-auto'>
 			<h2 className='text-center text-xl font-semibold mb-4'>
-				Distribución de medicamentos
+				Distribution of medicines
 			</h2>
 			<Pie data={data} />
 		</div>
