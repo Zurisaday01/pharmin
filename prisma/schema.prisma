@@ -86,7 +86,8 @@ model Product {
     createdAt   DateTime      @default(now())
     updatedAt   DateTime      @updatedAt
 
-    removals Removal[]
+    removals          Removal[]
+    InventoryMovement InventoryMovement[]
 }
 
 model Removal {
@@ -108,4 +109,24 @@ enum ProductStatus {
 enum UserRole {
     ADMIN
     MANAGER
+}
+
+model InventoryMovement {
+    id           String       @id @default(uuid())
+    productId    String
+    description  String // A description of the change, e.g. "Updated product name"
+    movementType MovementType
+    createdBy    String
+    createdAt    DateTime     @default(now())
+
+    product Product @relation(fields: [productId], references: [id])
+
+    @@index([productId, createdAt]) // To optimize queries based on product and date
+}
+
+enum MovementType {
+    ADDITION
+    REMOVAL
+    UPDATE
+    CONSUMPTION
 }

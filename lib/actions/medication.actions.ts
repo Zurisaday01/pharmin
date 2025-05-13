@@ -1,7 +1,8 @@
 'use server';
 import { revalidatePath } from 'next/cache';
 import { prisma } from '../db/prisma';
-import { Product } from '@prisma/client';
+import { MovementType, Product } from '@prisma/client';
+import { auth } from '@/auth';
 
 export const createMedication = async (formData: FormData) => {
 	const name = formData.get('name') as string;
@@ -19,10 +20,13 @@ export const createMedication = async (formData: FormData) => {
 		};
 	}
 
+	// get the current user session
+	const session = await auth();
+
 	const expiryDate = expiryDateStr ? new Date(expiryDateStr) : null;
 
 	try {
-		await prisma.product.create({
+		const newProduct = await prisma.product.create({
 			data: {
 				name,
 				description,
@@ -31,6 +35,16 @@ export const createMedication = async (formData: FormData) => {
 				minStock,
 				lotNumber,
 				expiryDate,
+			},
+		});
+
+		// Create an inventory movement record
+		await prisma.inventoryMovement.create({
+			data: {
+				productId: newProduct.id,
+				description: 'Created new medication entry',
+				movementType: 'ADDITION',
+				createdBy: session?.user?.name as string, // You'll need to pass this
 			},
 		});
 
@@ -67,11 +81,24 @@ export const updateMedicationStatus = async (formData: FormData) => {
 	if (!id) {
 		return { success: false, message: 'Missing ID' };
 	}
-	// Update logic (Prisma example)
+
+	// get the current user session
+	const session = await auth();
+
 	try {
-		await prisma.product.update({
+		const product = await prisma.product.update({
 			where: { id },
 			data: { status: 'REMOVED' },
+		});
+
+		// Create an inventory movement record
+		await prisma.inventoryMovement.create({
+			data: {
+				productId: product.id,
+				description: 'Removed a medication',
+				movementType: 'REMOVAL',
+				createdBy: session?.user?.name as string, // You'll need to pass this
+			},
 		});
 
 		revalidatePath('/dashboard/medications');
@@ -88,20 +115,90 @@ export const updateMedication = async (formData: FormData) => {
 
 	if (!id) return { success: false, message: 'Medication ID is missing.' };
 
+	const session = await auth();
+
 	try {
+		const existing = await prisma.product.findUnique({ where: { id } });
+		if (!existing) return { success: false, message: 'Medication not found.' };
+
+		const updatedQuantity = Number(formData.get('quantity'));
+		const newStatus = formData.get('status') as
+			| 'ACTIVE'
+			| 'REMOVED'
+			| 'EXPIRED';
+		const updateData = {
+			name: formData.get('name') as string,
+			description: formData.get('description') as string,
+			category: formData.get('category') as string,
+			quantity: updatedQuantity,
+			minStock: Number(formData.get('minStock')),
+			lotNumber: formData.get('lotNumber') as string,
+			expiryDate: new Date(formData.get('expiryDate') as string),
+			status: newStatus,
+		};
+
 		await prisma.product.update({
 			where: { id },
-			data: {
-				name: formData.get('name') as string,
-				description: formData.get('description') as string,
-				category: formData.get('category') as string,
-				quantity: Number(formData.get('quantity')),
-				minStock: Number(formData.get('minStock')),
-				lotNumber: formData.get('lotNumber') as string,
-				expiryDate: new Date(formData.get('expiryDate') as string),
-				status: formData.get('status') as 'ACTIVE' | 'REMOVED' | 'EXPIRED',
-			},
+			data: updateData,
 		});
+
+		const movementLogs = [];
+		const user = session?.user?.name || 'Unknown';
+
+		// Stock increased -> ADDED units
+		if (updatedQuantity > existing.quantity) {
+			movementLogs.push({
+				productId: id,
+				description: `Added ${updatedQuantity - existing.quantity} more units`,
+				movementType: 'ADDITION' as MovementType,
+				createdBy: user,
+			});
+		}
+
+		// Stock decreased -> CONSUMED units
+		if (updatedQuantity < existing.quantity) {
+			movementLogs.push({
+				productId: id,
+				description: `Consumed ${existing.quantity - updatedQuantity} units`,
+				movementType: 'CONSUMPTION' as MovementType,
+				createdBy: user,
+			});
+		}
+
+		// Check for general updates (excluding quantity and status)
+		const otherFieldsChanged =
+			existing.name !== updateData.name ||
+			existing.description !== updateData.description ||
+			existing.category !== updateData.category ||
+			existing.minStock !== updateData.minStock ||
+			existing.lotNumber !== updateData.lotNumber ||
+			existing.expiryDate?.toISOString() !==
+				updateData.expiryDate.toISOString();
+
+		if (otherFieldsChanged) {
+			movementLogs.push({
+				productId: id,
+				description: 'Updated medication details',
+				movementType: 'UPDATE' as MovementType,
+				createdBy: user,
+			});
+		}
+
+		// Log REMOVAL if status changed to EXPIRED
+		if (existing.status !== 'EXPIRED' && newStatus === 'EXPIRED') {
+			movementLogs.push({
+				productId: id,
+				description: 'Medication marked as expired',
+				movementType: 'REMOVAL',
+				createdBy: user,
+			});
+		}
+
+		if (movementLogs.length > 0) {
+			await prisma.inventoryMovement.createMany({
+				data: movementLogs as InventoryMovement[],
+			});
+		}
 
 		return { success: true, message: 'Medication updated successfully' };
 	} catch (error) {

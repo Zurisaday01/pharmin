@@ -21,6 +21,16 @@ declare global {
 		createdAt: string;
 		updatedAt: string;
 	}
+
+	interface InventoryMovement {
+		id: string;
+		productId: string;
+		movementType: 'ADDITION' | 'REMOVAL' | 'UPDATE';
+		description: string;
+		createdBy: string;
+		createdAt: string;
+		product: Medication
+	}
 }
 
 export {};

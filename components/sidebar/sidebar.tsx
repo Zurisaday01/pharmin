@@ -6,7 +6,7 @@ import { SidebarMenu } from './sidebar-menu';
 
 import { useSidebarContext } from '../layout/layout-context';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, PillBottleIcon, Users2Icon } from 'lucide-react';
+import { Boxes, HomeIcon, PillBottleIcon, Users2Icon } from 'lucide-react';
 
 export const SidebarWrapper = () => {
 	const pathname = usePathname();
@@ -44,6 +44,12 @@ export const SidebarWrapper = () => {
 								title='Medications'
 								icon={<PillBottleIcon />}
 								href='/dashboard/medications'
+							/>
+							<SidebarItem
+								isActive={pathname === '/inventory-movements'}
+								title='Inventory Movements'
+								icon={<Boxes />}
+								href='/dashboard/inventory-movements'
 							/>
 						</SidebarMenu>
 
