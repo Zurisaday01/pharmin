@@ -3,13 +3,13 @@
 import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { useActionState, useEffect } from 'react';
-import { signInWithCredentials, signUpWithCredentials } from '@/lib/actions/user.actions';
+import { signUpWithCredentials } from '@/lib/actions/user.actions';
 import toast from 'react-hot-toast';
-//components
-
+import { Alert } from '@heroui/react';
 import { Form, Button, Input } from '@heroui/react';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 const SignUpForm = () => {
 	// //define the action state (server action function, initial state)
@@ -18,6 +18,7 @@ const SignUpForm = () => {
 		message: '',
 	});
 	const { pending } = useFormStatus();
+	const session = useSession();
 
 	// // callback redirection logic
 	const router = useRouter();
@@ -27,10 +28,9 @@ const SignUpForm = () => {
 		if (data?.success) {
 			toast.success(data.message || 'Account created successfully');
 			router.push('/dashboard');
-		}else if (data?.message) {
-			toast.error(data.message);
+			session.update();
 		}
-	}, [data, router]);
+	}, [data, router, session]);
 
 	return (
 		<Form action={action} className='w-full max-w-xs flex flex-col gap-4'>
@@ -92,8 +92,8 @@ const SignUpForm = () => {
 					</Button>
 				</div>
 
-				{data && !data.success && (
-					<div className='text-center text-destructive'>{data.message}</div>
+				{data && !data.success && data.message && (
+					<Alert color='warning' title={data.message} />
 				)}
 
 				<div className='text-sm text-center text-muted-foreground'>

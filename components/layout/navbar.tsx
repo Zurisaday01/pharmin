@@ -34,9 +34,13 @@ export const NavbarLayout = ({ children }: Props) => {
 				<NavbarContent>
 					<Dropdown>
 						<DropdownTrigger>
-							<Avatar className='ml-auto' src={session?.user?.image ?? ''} />
+							<div className='flex items-center gap-2 ml-auto'>
+								{session?.user?.name ?? 'User'}
+								<Avatar src={session?.user?.image ?? ''} />
+							</div>
 						</DropdownTrigger>
 						<DropdownMenu aria-label='Static Actions'>
+							<DropdownItem key='info'>{session?.user.email}</DropdownItem>
 							<DropdownItem
 								key='delete'
 								className='text-danger'

@@ -52,11 +52,7 @@ const InventoryMovementTable = ({
 							})}
 						</TableCell>
 						<TableCell>{movement.createdBy}</TableCell>
-						{/* <TableCell>
-							<Button color='primary' className='mr-2'>
-								<Link href={`/dashboard/users/${user.id}`}>Update</Link>
-							</Button>
-						</TableCell> */}
+						
 					</TableRow>
 				))}
 			</TableBody>

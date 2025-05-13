@@ -1,12 +1,10 @@
 'use client';
-
-import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 import { useActionState, useEffect } from 'react';
 import { signInWithCredentials } from '@/lib/actions/user.actions';
 //components
 
-import { Form, Button, Input } from '@heroui/react';
+import { Form, Button, Input, Alert } from '@heroui/react';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 
@@ -18,16 +16,12 @@ const SignInForm = () => {
 	});
 	const { pending } = useFormStatus();
 
-	// // callback redirection logic
-	const router = useRouter();
-
 	// ✅ Show toast and redirect on success
 	useEffect(() => {
 		if (data?.success) {
-			router.push('/dashboard');
+			window.location.href = '/dashboard'; // full reload
 		}
-	}, [data, router]);
-
+	}, [data]);
 	return (
 		<Form action={action} className='w-full max-w-xs flex flex-col gap-4'>
 			<div className='space-y-6 w-full'>
@@ -66,8 +60,8 @@ const SignInForm = () => {
 					</Button>
 				</div>
 
-				{data && !data.success && (
-					<div className='text-center text-destructive'>{data.message}</div>
+				{data && !data.success && data.message && (
+					<Alert color='warning' title={data.message} />
 				)}
 
 				<div className='text-sm text-center text-muted-foreground'>

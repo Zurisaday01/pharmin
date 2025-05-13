@@ -21,7 +21,7 @@ export const signInWithCredentials = async (
 			password: formData.get('password') as string,
 		});
 
-		await signIn('credentials', user);
+		await signIn('credentials', { ...user, redirect: false });
 
 		return { success: true, message: 'Signed in successfully' };
 	} catch (error: unknown) {
@@ -44,6 +44,7 @@ export async function signUpWithCredentials(
 	formData: FormData
 ) {
 	try {
+		// parse the user data from the form data
 		const user = signUpFormSchema.parse({
 			name: formData.get('name'),
 			email: formData.get('email'),
@@ -51,9 +52,13 @@ export async function signUpWithCredentials(
 			confirmPassword: formData.get('confirmPassword'),
 		});
 
+		// get the pain password
 		const plainPassword = user.password;
+
+		// hash the password
 		user.password = await hash(plainPassword);
 
+		// create the user in the database
 		await prisma.user.create({
 			data: {
 				name: user.name,
@@ -62,23 +67,19 @@ export async function signUpWithCredentials(
 			},
 		});
 
-		const result = await signIn('credentials', {
+		// sign in right after
+		await signIn('credentials', {
 			email: user.email,
 			password: plainPassword,
-			redirect: false, // ✅ Mantén esto para evitar navegación automática
+			redirect: false,
 		});
 
-		if (result?.ok) {
-			return { success: true, message: 'User registered successfully' };
-		} else {
-			return { success: false, message: 'User created, but sign-in failed' };
-		}
+		return { success: true, message: 'User registered successfully' };
 	} catch (error: unknown) {
 		if (isRedirectError(error)) {
 			throw error;
 		}
 
-		console.error('Error creating user', error);
 		return { success: false, message: formatError(error) };
 	}
 }
@@ -108,7 +109,7 @@ export async function deleteUser(id: string) {
 	try {
 		await prisma.user.delete({ where: { id } });
 
-		revalidatePath('/admin/users');
+		revalidatePath('/dashboard/users');
 
 		return {
 			success: true,

@@ -15,11 +15,39 @@ import {
 	ModalBody,
 } from '@heroui/react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 const UsersTable = ({ users }: { users: User[] }) => {
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
 	const [selectedUser, setSelectedUser] = useState<User | null>(null);
+	const router = useRouter();
+
+	const handleDeleteUser = async (userId: string, onClose: () => void) => {
+		try {
+			const res = await fetch('/api/users/delete', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ id: userId }),
+			});
+
+			const data = await res.json();
+
+			if (res.ok && data.success) {
+				toast.success('User deleted successfully');
+				onClose();
+				router.refresh();
+			} else {
+				toast.error(data.message || 'Failed to delete user');
+			}
+		} catch (error) {
+			console.error(error);
+			alert('Something went wrong');
+		}
+	};
 
 	return (
 		<>
@@ -76,8 +104,8 @@ const UsersTable = ({ users }: { users: User[] }) => {
 									<Button
 										color='danger'
 										onPress={() => {
-											// call delete API
-											onClose();
+											if (!selectedUser) return;
+											handleDeleteUser(selectedUser.id, onClose);
 										}}>
 										Confirm
 									</Button>
