@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React from 'react';
 import { ChevronDownIcon } from 'lucide-react';
 import { Accordion, AccordionItem } from '@heroui/react';
 
@@ -10,7 +10,7 @@ interface Props {
 }
 
 export const CollapseItems = ({ icon, items, title }: Props) => {
-	const [open, setOpen] = useState(false);
+	
 
 	return (
 		<div className='flex gap-4 h-full items-center cursor-pointer'>
