@@ -102,6 +102,7 @@ export const updateMedicationStatus = async (formData: FormData) => {
 		});
 
 		revalidatePath('/dashboard/medications');
+		revalidatePath('/dashboard/inventory-movements');
 
 		return { success: true, message: 'Medication removed successfully' };
 	} catch (error) {
@@ -199,6 +200,9 @@ export const updateMedication = async (formData: FormData) => {
 				data: movementLogs as InventoryMovement[],
 			});
 		}
+
+		revalidatePath('/dashboard/medications');
+		revalidatePath('/dashboard/inventory-movements');
 
 		return { success: true, message: 'Medication updated successfully' };
 	} catch (error) {
