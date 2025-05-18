@@ -67,14 +67,11 @@ export async function signUpWithCredentials(
 			},
 		});
 
-		// sign in right after
-		await signIn('credentials', {
-			email: user.email,
-			password: plainPassword,
-			redirect: false,
-		});
-
-		return { success: true, message: 'User registered successfully' };
+		return {
+			success: true,
+			message:
+				'User registered successfully, please sign in with your credentials',
+		};
 	} catch (error: unknown) {
 		if (isRedirectError(error)) {
 			throw error;

@@ -9,7 +9,6 @@ import { Alert } from '@heroui/react';
 import { Form, Button, Input } from '@heroui/react';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
-import { useSession } from 'next-auth/react';
 
 const SignUpForm = () => {
 	// //define the action state (server action function, initial state)
@@ -18,20 +17,17 @@ const SignUpForm = () => {
 		message: '',
 	});
 	const { pending } = useFormStatus();
-	const session = useSession();
 
-	// // callback redirection logic
+	// callback redirection logic
 	const router = useRouter();
 
 	// ✅ Show toast and redirect on success
 	useEffect(() => {
 		if (data?.success) {
-			// FIXME: Infinite loop with toasts
-			toast.success(data.message || 'Account created successfully');
-			router.push('/dashboard');
-			session.update();
+			toast.success(data.message);
+			router.push('/sign-in');
 		}
-	}, [data, router, session]);
+	}, [data, router]);
 
 	return (
 		<Form action={action} className='w-full max-w-xs flex flex-col gap-4'>
