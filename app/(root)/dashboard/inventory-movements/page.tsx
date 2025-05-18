@@ -1,8 +1,10 @@
 import InventoryMovementTable from '@/components/tables/inventory-movement-table';
 import TopConsumedMedications from '@/components/top-consumed-medications';
 import { getAllInventoryMovements } from '@/lib/actions/inventory-movement.actions';
+import { requireAdmin } from '@/lib/auth-guard';
 
 const MedicationsPage = async () => {
+	await requireAdmin();
 	const inventoryMovements = await getAllInventoryMovements();
 
 	return (

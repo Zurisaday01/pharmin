@@ -26,6 +26,7 @@ const SignUpForm = () => {
 	// ✅ Show toast and redirect on success
 	useEffect(() => {
 		if (data?.success) {
+			// FIXME: Infinite loop with toasts
 			toast.success(data.message || 'Account created successfully');
 			router.push('/dashboard');
 			session.update();

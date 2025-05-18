@@ -41,6 +41,7 @@ export const NavbarLayout = ({ children }: Props) => {
 						</DropdownTrigger>
 						<DropdownMenu aria-label='Static Actions'>
 							<DropdownItem key='info'>{session?.user.email}</DropdownItem>
+							<DropdownItem key='info'>{session?.user.role} user</DropdownItem>
 							<DropdownItem
 								key='delete'
 								className='text-danger'
